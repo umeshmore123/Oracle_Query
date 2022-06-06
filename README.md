@@ -151,3 +151,33 @@ and s.last_call_et>0
 order by sql_id, username
 /
 ---------------END------------------
+-------------- aue.sql ----------------------
+Set echo off
+set pagesize 50
+set lines 200
+set verify off
+set heading on
+set feedback on
+col SESS format a12
+col status format a10
+col program format a30
+col terminal format a12
+col "Machine Name" format a15
+col "Machine Name" format a15
+col "DB User" format a14
+col "Logon Time" format a14
+col "OS User" format a10
+
+
+select inst_id, rpad(s.username,14,' ') as "DB User",
+   to_char(logon_time,'hh24:mi Mon/dd') as "Logon Time",
+   initcap(status) as "Status",s.sid||','||s.serial# SESS,
+   s.event,
+   rpad(upper(substr(s.program,instr(s.program,'\',-1)+1)),30,' ') as "Program",
+   rpad(initcap(machine),15,' ') as "Machine Name" from gv$session s
+   where upper(s.username) like upper('%&Username%') and s.status='ACTIVE'
+   order by machine,s.program
+/
+
+-------------- END---------------
+
