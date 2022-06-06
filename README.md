@@ -180,4 +180,50 @@ select inst_id, rpad(s.username,14,' ') as "DB User",
 /
 
 -------------- END---------------
+---------- sqh.sql (SQL HISTORY) ----------
+set lines 250 pages 5000
+col NOde for 99
+col BEG_time for a15
+col module for a43
+col parsing_schema_name for a12 heading user
+col instance_number for 99
+--col SQL_PROFILE noprint
+col SQL_PROFILE for a10
+--break on Beg_time skip page
+set colsep |
+set underline _
+col snap_id noprint
+select ss.snap_id, ss.instance_number node, PARSING_SCHEMA_NAME, to_char(begin_interval_time,'dd-MON-yy hh24:mi') BEG_time, sql_id, plan_hash_value,module,SQL_PROFILE,
+nvl(executions_delta,0) execs,
+(elapsed_time_delta/decode(nvl(executions_delta,0),0,1,executions_delta))/1000000 avg_etime_s,
+(buffer_gets_delta/decode(nvl(buffer_gets_delta,0),0,1,executions_delta)) avg_lio
+from DBA_HIST_SQLSTAT S, DBA_HIST_SNAPSHOT SS
+where
+sql_id = nvl('&sql_id','bdqf2qwjvuupd') and ss.snap_id = S.snap_id
+and ss.instance_number = S.instance_number and executions_delta > 0
+and executions_delta>0
+and begin_interval_time > trunc(sysdate-&Days)
+order by snap_id, PARSING_SCHEMA_NAME,ss.instance_number
+/
 
+----------END----------
+
+----------sql.monitoring-----------
+col key format 999999999999
+col sql_exec_start for a25
+col sql_text for a60 trunc
+break on sql_id on sql_text
+set colsep '|'
+break on sql_id on plan_hash_value
+col sql_exec_start for a20
+select sid, sql_id, sql_exec_id, to_char(sql_exec_start,'DD-Mon-YY HH24:MI:SS') sql_exec_start, sql_plan_hash_value plan_hash_value,
+elapsed_time/1000000 etime, buffer_gets, disk_reads
+from v$sql_monitor
+where sid like nvl('&sid',sid)
+and sql_id like nvl('&sql_id',sql_id)
+and sql_exec_id like nvl('&sql_exec_id',sql_exec_id)
+order by sql_id, sql_exec_id
+/
+set colsep ' '
+
+-------- END----------
