@@ -123,3 +123,31 @@ undef SID
 set heading on
 set verify on
 set feedback on
+-------------------------- END -----------------
+---------------wait.sql--------------
+set lines 200
+col event format a40
+set pages 1000
+set colsep |
+set underline _
+break on sql_id   skip page
+select event,count(*) from gv$session_wait group by event order by 2
+/
+
+col sql format a40
+col state format a12
+col username format a15
+
+select distinct s.inst_id,w.sid,s.username,s.sql_id,w.event,substr(w.state,1,12) state,
+substr(q.sql_text,1,15)||'.....'||substr(q.sql_text,instr(q.sql_text,'FROM',1),20) sql,round(s.last_call_et/60) MINS_ACTIVE
+from gv$session_wait w,gv$session s,v$sql q
+where w.event like '%&event%'
+and w.sid=s.sid
+and s.SQL_HASH_VALUE=q.HASH_VALUE
+and s.status='ACTIVE'
+and s.inst_id=w.inst_id
+and s.username is not null
+and s.last_call_et>0
+order by sql_id, username
+/
+---------------END------------------
