@@ -698,3 +698,16 @@ AND a.tablespace_name = tbs_auto.tablespace_name(+)
 order by total_free_pct;
 
 ================== end===================
+
+======== Bash_prfofile ------
+export SQLPATH=/home/APP_ADMIN/scripts
+alias s+="sqlplus RMS/N_wBury#12@100.67.65.18/rmsprd_pdb1.ccsprddb.ccsretprdvcn.oraclevcn.com"
+
+ORACLE_HOME=/u01/app/oracle/product/19.0.0.0/dbhome_3; export ORACLE_HOME
+ORACLE_SID=RMSPRD1; export ORACLE_SID
+PATH=/usr/sbin:$PATH; export PATH
+PATH=$ORACLE_HOME/bin:$PATH; export PATH
+LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib; export LD_LIBRARY_PATH
+CLASSPATH=$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib; export CLASSPATH
+
+================ END ==========
