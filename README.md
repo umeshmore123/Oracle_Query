@@ -487,3 +487,142 @@ set lines 200
  spool off
 
 ----------end ------------
+
+
+-- SQL Profile/Baseline -----
+
+
+--- creatre sql baseline from coursor cache ----
+DECLARE
+
+  l_plans_loaded  PLS_INTEGER;
+BEGIN
+  l_plans_loaded := DBMS_SPM.load_plans_from_cursor_cache(
+    sql_id => '&sql_id');
+END;
+/
+
+-- Create baseline with a particular hash value
+
+DECLARE
+  l_plans_loaded  PLS_INTEGER;
+BEGIN
+  l_plans_loaded := DBMS_SPM.load_plans_from_cursor_cache(
+    sql_id => '&sql_id', plan_hash_value => '&plan_hash_value');
+END;
+/
+
+----------drop a sql baseline -----
+
+declare
+drop_result pls_integer;
+begin
+drop_result := DBMS_SPM.DROP_SQL_PLAN_BASELINE(
+plan_name => '&sql_plan_baseline_name');
+dbms_output.put_line(drop_result);
+end;
+/
+
+You can get the sql baseline from a sql_id from below command:
+
+SELECT sql_handle, plan_name FROM dba_sql_plan_baselines WHERE signature IN
+( SELECT exact_matching_signature FROM gv$sql WHERE sql_id='&SQL_ID');
+
+--------------create baselines for all sqls of a schema---
+
+DECLARE
+nRet NUMBER;
+BEGIN
+nRet := dbms_spm.load_plans_from_cursor_cache(
+attribute_name => 'PARSING_SCHEMA_NAME',
+attribute_value => '&schema_name'
+);
+END;
+
+
+---- drop sql_profile--
+
+BEGIN
+DBMS_SQLTUNE.drop_sql_profile (
+name => '&sql_profile',
+ignore => TRUE);
+END;
+/
+
+You can get the respective sql_profile of a sql_id from below:
+
+select distinct
+p.name sql_profile_name,
+s.sql_id
+from
+dba_sql_profiles p,
+DBA_HIST_SQLSTAT s
+where
+p.name=s.sql_profile and s.sql_id='&sql_id';
+
+------------------ Script for getting sql_profile created for a sql_id
+
+select distinct
+p.name sql_profile_name,
+s.sql_id
+from
+dba_sql_profiles p,
+DBA_HIST_SQLSTAT s
+where
+p.name=s.sql_profile and s.sql_id='&sql_id';
+
+------- SQL Tunning Advisor ----
+
+Create tuning task:
+
+DECLARE
+l_sql_tune_task_id VARCHAR2(100);
+BEGIN
+l_sql_tune_task_id := DBMS_SQLTUNE.create_tuning_task (
+sql_id => '12xca9smf3hfy',
+scope => DBMS_SQLTUNE.scope_comprehensive,
+time_limit => 500,
+task_name => '12xca9smf3hfy_tuning_task',
+description => 'Tuning task1 for statement 12xca9smf3hfy');
+DBMS_OUTPUT.put_line('l_sql_tune_task_id: ' || l_sql_tune_task_id);
+END;
+/
+
+Execute tuning task:
+
+EXEC DBMS_SQLTUNE.execute_tuning_task(task_name => '12xca9smf3hfy_tuning_task');
+
+Get the tuning advisory report
+
+set long 65536
+set longchunksize 65536
+set linesize 100
+select dbms_sqltune.report_tuning_task('12xca9smf3hfy_tuning_task') from dual;
+
+------ DISABLE/ENABLE SQL profile ---
+
+EXEC DBMS_SQLTUNE.ALTER_SQL_PROFILE('&sql_profile_name','STATUS','DISABLED');
+
+----Pass the sql_id to get the respective sql baseline-----
+
+SELECT sql_handle, plan_name FROM dba_sql_plan_baselines WHERE
+signature IN ( SELECT exact_matching_signature FROM gv$sql WHERE sql_id='&SQL_ID')
+
+------------ To disable a baseline:----------
+
+Begin
+dbms_spm.alter_sql_plan_baseline(sql_handle =>'SQL_SQL_5818768f40d7be2a',
+plan_name => 'SQL_PLAN_aaxsg8yktm4h100404251',
+attribute_name=> 'enabled',
+attribute_value=>'NO');
+END;
+/
+Begin
+dbms_spm.alter_sql_plan_baseline(sql_handle =>'SQL_SQL_5818768f40d7be2a',
+plan_name => 'SQL_PLAN_aaxsg8yktm4h100404251',
+attribute_name=> 'fixed',
+attribute_value=>'NO');
+END;
+/
+
+-- To enable again, just modify the attribute_value to YES,-----
