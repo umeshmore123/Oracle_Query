@@ -227,3 +227,263 @@ order by sql_id, sql_exec_id
 set colsep ' '
 
 -------- END----------
+
+--------- az.sql -------------
+spool results01.txt
+ set echo on feedback on time on timing on pagesize 100 linesize 80 numwidth 13
+ show user
+ alter session set nls_date_format = 'DD-MON-YYYY HH24:MI:SS';
+ select * from v$version;
+ select to_char(sysdate, 'DD-MON-YYYY HH24:MI:SS') as current_date from dual;
+ column name format a30
+ column value format a49
+ select name, value from v$parameter where isdefault='FALSE' order by 1;
+ column parameter format a30
+ column value format a49
+ select * from v$nls_parameters order by parameter;
+ column name format a10
+ select dbid, name,
+ to_char(created, 'DD-MON-YYYY HH24:MI:SS') created,
+ open_mode, log_mode,
+ to_char(checkpoint_change#, '999999999999999') as checkpoint_change#,
+ controlfile_type,
+ to_char(controlfile_change#, '999999999999999') as controlfile_change#,
+ to_char(controlfile_time, 'DD-MON-YYYY HH24:MI:SS') controlfile_time,
+ to_char(resetlogs_change#, '999999999999999') as resetlogs_change#,
+ to_char(resetlogs_time, 'DD-MON-YYYY HH24:MI:SS') resetlogs_time
+ from v$database;
+ select * from v$instance;
+ archive log list;
+ select * from v$thread order by thread#;
+ select * from v$log order by first_change#;
+ column member format a60
+set lines 200
+ select * from v$logfile;
+ column name format a79
+ select '#' || ts.name || '#' as tablespace_name, ts.ts#,
+ '#' || df.name || '#' as filename, df.file#, df.status, df.enabled, df.creation_change#,
+ to_char(df.creation_time, 'DD-MON-YYYY HH24:MI:SS') as creation_time,
+ to_char(df.checkpoint_change#, '999999999999999') as checkpoint_change#,
+ to_char(df.checkpoint_time, 'DD-MON-YYYY HH24:MI:SS') as checkpoint_time,
+ to_char(df.offline_change#, '999999999999999') as offline_change#,
+ to_char(df.online_change#, '999999999999999') as online_change#,
+ to_char(df.online_time, 'DD-MON-YYYY HH24:MI:SS') as online_time,
+ to_char(df.unrecoverable_change#, '999999999999999') as online_change#,
+ to_char(df.unrecoverable_time, 'DD-MON-YYYY HH24:MI:SS') as online_time,
+ to_char(df.bytes, '9,999,999,999,990') as bytes, block_size
+ from v$datafile df, v$tablespace ts
+ where ts.ts# = df.ts#
+ and ( df.status <> 'ONLINE'
+ or df.checkpoint_change# <> (select checkpoint_change# from v$database) );
+ select '#' || ts.name || '#' as tablespace_name, ts.ts#,
+ '#' || dh.name || '#' as filename, dh.file#, dh.status, dh.error, dh.
+ fuzzy, dh.creation_change#,
+ to_char(dh.creation_time, 'DD-MON-YYYY HH24:MI:SS') as creation_time,
+ to_char(dh.checkpoint_change#, '999999999999999') as checkpoint_change#,
+ to_char(dh.checkpoint_time, 'DD-MON-YYYY HH24:MI:SS') as checkpoint_time,
+ to_char(dh.resetlogs_change#, '999999999999999') as resetlogs_change#,
+ to_char(dh.resetlogs_time, 'DD-MON-YYYY HH24:MI:SS') as resetlogs_time,
+ to_char(dh.bytes, '9,999,999,999,990') as bytes
+ from v$datafile_header dh, v$tablespace ts
+ where ts.ts# = dh.ts#
+ and ( dh.status <> 'ONLINE'
+ or dh.checkpoint_change# <> (select checkpoint_change# from v$database) );
+ select * from v$tempfile;
+ select HXFIL File_num,substr(HXFNM,1,60) file_name, FHTNM tablespace_name,
+ FHTYP type, HXERR validity,
+ FHSCN SCN, FHTIM SCN_Time, FHSTA status,
+ FHTHR Thread, FHRBA_SEQ Sequence
+ from X$KCVFH
+ --where HXERR > 0
+ order by HXERR, FHSTA, FHSCN, HXFIL;
+ select FHTHR Thread, FHRBA_SEQ Sequence, count(1)
+ from X$KCVFH
+ group by FHTHR, FHRBA_SEQ
+ order by FHTHR, FHRBA_SEQ;
+ column error format a15
+ select error, fuzzy, status, checkpoint_change#,
+ to_char(checkpoint_time, 'DD-MON-YYYY HH24:MI:SS') as checkpoint_time,
+ count(*)
+ from v$datafile_header
+ group by error, fuzzy, status, checkpoint_change#, checkpoint_time
+ order by checkpoint_change#, checkpoint_time;
+ select * from V$INSTANCE_RECOVERY;
+ select * from v$recover_file order by change#;
+ select * from dba_tablespaces where status <> 'ONLINE';
+ SELECT * FROM database_properties order by property_name;
+ select *
+ from X$KCCLH, (select min(checkpoint_change#) df_min_scn,
+ min(checkpoint_change#) df_max_scn
+ from v$datafile_header
+ where status='ONLINE') df
+ where LHLOS in (select first_change# from v$log)
+ or df.df_min_scn between LHLOS and LHNXS
+ or df.df_max_scn between LHLOS and LHNXS;
+ select * from v$backup where status <> 'NOT ACTIVE';
+ select ADDR, XIDUSN, XIDSLOT, XIDSQN,
+ UBAFIL, UBABLK, UBASQN,
+ START_UBAFIL, START_UBABLK, START_UBASQN,
+ USED_UBLK, STATUS
+ from v$transaction;
+ select * from v$archive_gap;
+ select * from v$archive_dest_status where recovery_mode <> 'IDLE';
+ column USED_GB format 999,990.999
+ column USED% format 990.99
+ column RECLAIM_GB format 999,990.999
+ column RECLAIMABLE% format 990.99
+ column LIMIT_GB format 999,990.999
+ select frau.file_type as type,
+ frau.percent_space_used/100 * rfd.space_limit /1024/1024/1024 "USED_GB",
+ frau.percent_space_used "USED%",
+ frau.percent_space_reclaimable "RECLAIMABLE%",
+ frau.percent_space_reclaimable/100 * rfd.space_limit /1024/1024/1024 "RECLAIM_GB",
+ frau.number_of_files "FILES#"
+ from v$flash_recovery_area_usage frau,
+ v$recovery_file_dest rfd
+ order by file_type;
+ select name,
+ space_limit/1024/1024/1024 "LIMIT_GB",
+ space_used/1024/1024/1024 "USED_GB",
+ space_used/space_limit*100 "USED%",
+ space_reclaimable/1024/1024/1024 "RECLAIM_GB",
+ number_of_files "FILE#"
+ from v$recovery_file_dest;
+ select * from v$backup_corruption;
+ select * from v$copy_corruption order by file#, block#;
+ select * from v$database_block_corruption order by file#, block#;
+ SELECT f.file#, f.name,
+ e.tablespace_name, e.segment_type, e.owner, e.segment_name,
+ c.file#, c.block#, c.blocks, c.corruption_change#, c.corruption_type
+ FROM dba_extents e, V$database_block_corruption c, v$datafile f
+ WHERE c.file# = f.file#
+ and e.file_id = c.file#
+ and c.block# between e.block_id AND e.block_id + e.blocks - 1;
+ select * from v$database_incarnation;
+ select * from v$rman_configuration;
+ select s.recid as bs_key, p.recid as bp_key, p.status, p.tag, p.device_type,
+ p.handle, p.media, p.completion_time, p.bytes
+ from v$backup_piece p, v$backup_set s
+ where p.set_stamp = s.set_stamp
+ and s.controlfile_included='YES'
+ order by p.completion_time;
+ select * from v$block_change_tracking;
+ select p.completion_time, 'File*' || f.file# || '*', s.recid as bs_key, p.recid as bp_key, p.status, p.tag, p.device_type,
+ p.handle, p.media, f.absolute_fuzzy_change#, p.bytes,
+ f.incremental_level, f. block_size, f.datafile_blocks, f.blocks_read, f.blocks,
+ round((f.blocks_read/f.datafile_blocks) * 100,2) "%READ",
+ round((f.blocks/f.datafile_blocks)*100,2) "%WRTN",
+ f.used_change_tracking, f.creation_change#, f.incremental_change#, f.checkpoint_change#
+ from v$backup_datafile f, v$backup_piece p, v$backup_set s
+ where p.set_stamp = s.set_stamp
+ and f.set_stamp = s.set_stamp
+ and p.handle is not null
+ --and f.file# = 1
+ and f.file# > 0
+ order by p.completion_time, f.file#;
+ select 'File*' || file# || '*', completion_time, to_char(creation_change#), incremental_level, to_char(incremental_change#) inc#,
+ to_char(checkpoint_change#) ckp#, datafile_blocks BLKS, block_size blksz,
+ blocks_read READ, round((blocks_read/datafile_blocks) * 100,2) "%READ",
+ blocks WRTN, round((blocks/datafile_blocks)*100,2) "%WRTN", used_change_tracking
+ from v$backup_datafile
+ where completion_time > sysdate-7
+ and file# > 0
+ order by file#, completion_time;
+ COL rman_start_time FORM A20
+ COL rman_end_time FORM A20
+ COL time_taken_display FORM A10 HEAD "Time|Taken|HH:MM:SS"
+ COL i_size_gig FORM 990.99 HEAD "Input|Gig"
+ COL o_size_gig FORM 990.99 HEAD "Output|Gig"
+ COL compression_ratio FORM 90.99 HEAD "Comp.|Ratio"
+ COL status FORM A12
+ COL input_type FORM A14
+ COL INPUT_BYTES_PER_SEC_DISPLAY FORM A9 HEAD "Input|(Bytes/s)"
+ COL OUTPUT_BYTES_PER_SEC_DISPLAY FORM A9 HEAD "Output|(Bytes/s)"
+ --
+ SELECT
+ command_id
+ ,TO_CHAR(start_time,'DD-MON-RRRR HH24:MI:SS') AS rman_start_time
+ ,TO_CHAR(end_time,'DD-MON-RRRR HH24:MI:SS') AS rman_end_time
+ ,time_taken_display
+ ,input_bytes/1024/1024/1024 i_size_gig
+ ,output_bytes/1024/1024/1024 o_size_gig
+ ,compression_ratio
+ ,status
+ ,input_type
+ ,input_bytes, output_bytes
+ ,INPUT_BYTES_PER_SEC_DISPLAY
+ ,OUTPUT_BYTES_PER_SEC_DISPLAY
+ FROM v$rman_backup_job_details
+ ORDER BY end_time;
+ select * from v$filestat;
+ column EBS_MB format 9,990.99
+ column TOTAL_MB format 999,990.99
+ select SID, SERIAL, FILENAME, EFFECTIVE_BYTES_PER_SECOND/1024/1024 as EBS_MB,
+ OPEN_TIME, CLOSE_TIME, ELAPSED_TIME, TOTAL_BYTES/1024/1024 as TOTAL_MB,
+ STATUS, MAXOPENFILES, buffer_size, buffer_count
+ from v$backup_async_io
+ where close_time >= sysdate-3
+ order by close_time;
+ select SID, SERIAL, FILENAME, EFFECTIVE_BYTES_PER_SECOND/1024/1024 as EBS_MB,
+ OPEN_TIME, CLOSE_TIME, ELAPSED_TIME, TOTAL_BYTES/1024/1024 as TOTAL_MB,
+ STATUS, MAXOPENFILES, buffer_size, buffer_count
+ from v$backup_sync_io
+ where close_time >= sysdate-3;
+ select * from v$controlfile_record_section order by type;
+ select to_char(rownum) || '. ' || output rman_output from v$rman_output;
+ select * from v$rman_status where trunc(end_time) > trunc(sysdate)-3;
+ select protection_mode, protection_level from v$database;
+ select * from v$recovery_progress;
+ SELECT
+ a.username
+ ,a.sid || ',' || a.serial# AS kill_string
+ , b.spid AS OS_ID
+ ,(CASE WHEN a.client_info IS NULL AND a.action IS NOT NULL THEN 'First Default'
+ WHEN a.client_info IS NULL AND a.action IS NULL THEN 'Polling'
+ ELSE a.client_info
+ END) client_info
+ ,a.action
+ FROM v$session a
+ ,v$process b
+ WHERE a.program like '%rman%'
+ AND a.paddr = b.addr;
+ select s.client_info,
+ sl.message,
+ sl.sid, sl.serial#, p.spid,
+ sl.start_time, sl.last_update_time,
+ sl.time_remaining, sl.elapsed_seconds, sl.time_remaining + sl.elapsed_seconds as total_seconds,
+ sl.time_remaining/60 "Remaining (Min)", sl.elapsed_seconds/60 "Elapsed (Min)",
+ round(sl.sofar/sl.totalwork*100,2) || '%' "Completed"
+ from v$session_longops sl, v$session s, v$process p
+ where p.addr = s.paddr
+ and sl.sid=s.sid
+ and sl.serial#=s.serial#
+ and opname LIKE 'RMAN%'
+ and opname NOT LIKE '%aggregate%'
+ and totalwork != 0
+ and sofar <> totalwork;
+ select AL.*,
+ DF.min_checkpoint_change#, DF.min_checkpoint_time
+ from v$archived_log AL,
+ (select min(checkpoint_change#) min_checkpoint_change#,
+ min(checkpoint_time) min_checkpoint_time
+ from v$datafile_header
+ where status='ONLINE') DF
+ where DF.min_checkpoint_change# between AL.first_change# and AL.next_change#
+ order by AL.first_change#;
+ select thread#, min(first_time), max(next_time), min(first_change#), max(next_change#),
+ min(sequence#) as min_seq, max(sequence#) as max_seq, count(1)
+ from v$archived_log
+ where status = 'A'
+ group by thread#;
+ select * from v$asm_diskgroup;
+ select * from v$asm_disk;
+ select * from v$flashback_database_stat order by begin_time desc;
+ select * from v$flashback_database_log;
+ select * from v$flashback_database_logfile order by first_time desc;
+ select * from v$restore_point;
+ select * from v$rollname;
+ select * from v$undostat;
+ select * from dba_rollback_segs;
+ spool off
+
+----------end ------------
