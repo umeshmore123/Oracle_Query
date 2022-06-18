@@ -1,4 +1,5 @@
 # Oracle_Query
+==== https://dbaclass.com/monitor-your-db/ ======
 -----------------sq.sql-----------------
 set echo off
 set serveroutput on size 50000
