@@ -1,0 +1,161 @@
+@/home/oracle/scripts/DBspace.sql
+@/home/oracle/scripts/TBS.sql
+@/home/oracle/scripts/SEGGROWTH.sql
+@/home/oracle/scripts/XMLP_SCHED.sql
+
+
+==========================
+
+cat XMLP_SCHED.sql
+set feedback off
+column nop noprint
+set lines 300
+col TIMEPOINT for a30
+
+
+set  markup HTML ON SPOOL ON HEAD "<style type='text/css'> body {font:10pt Arial,Helvetica,sans-serif; color:black; background:White;} p {font:10pt Arial,Helvetica,sans-serif; color:black; background:White;} table,tr,td {font:10pt Arial,Helvetica,sans-serif; color:Black; background:#f7f7e7; padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;align:center;text-align:center} th {font:bold 10pt Arial,Helvetica,sans-serif; color:#336699; background:#cccc99; padding:0px 0px 0px 0px;} h1 {font:16pt Arial,Helvetica,Geneva,sans-serif; color:#336699; background-color:White; border-bottom:1px solid #cccc99; margin-top:0pt; margin-bottom:0pt; padding:0px 0px 0px 0px;-} h2 {font:bold 10pt Arial,Helvetica,Geneva,sans-serif; color:#336699; background-color:White; margin-top:4pt; margin-bottom:0pt;} a {font:9pt Arial,Helvetica,sans-serif; color:#663300; background:#ffffff; margin-top:0pt; margin-bottom:0pt; vertical-align:top;}</style><title>SQL*Plus Report</title>" BODY "" TABLE "border='1' width='90%' align='center' summary='Script output'" ENTMAP ON PREFORMAT OFF
+
+spool /home/oracle/scripts/logs/XMLP_SCHED.html
+set heading off
+set feedback off
+column nop noprint
+select 'a' nop,'XMLP_SCHED_DATA' from dual;
+
+set heading on
+
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_DATA','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate-30)
+union
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_DATA','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate)
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+30)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+60)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+90)) order by 1 desc) where rownum = 1
+/
+
+
+set heading off
+select 'a' nop,'XMLP_SCHED_DELIVERY' from dual;
+
+set heading on
+
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_DELIVERY','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate-30)
+union
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_DELIVERY','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate)
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+30)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+60)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+90)) order by 1 desc) where rownum = 1
+/
+set heading off
+select 'a' nop,'XMLP_SCHED_JOB' from dual;
+set heading on
+
+
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_JOB','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate-30)
+union
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_JOB','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate)
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+30)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+60)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+90)) order by 1 desc) where rownum = 1
+/
+
+set heading off
+
+select 'a' nop,'XMLP_SCHED_OUTPUT' from dual;
+
+set heading on
+
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate-30)
+union
+select * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',start_time=>sysdate-30)) where trunc(timepoint) = trunc(sysdate)
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+30)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+60)) order by 1 desc) where rownum = 1
+union
+select * from (SELECT * FROM TABLE(DBMS_SPACE.object_growth_trend ('PR_BIPLATFORM','XMLP_SCHED_OUTPUT','TABLE',end_time=>sysdate+90)) order by 1 desc) where rownum = 1
+/
+
+
+spool off
+set markup HTML off
+
+
+======================================
+
+cat DBspace.sql
+set lines 300
+set feedback off
+col DBNAME for a10
+set  markup HTML ON SPOOL ON HEAD "<style type='text/css'> body {font:10pt Arial,Helvetica,sans-serif; color:black; background:White;} p {font:10pt Arial,Helvetica,sans-serif; color:black; background:White;} table,tr,td {font:10pt Arial,Helvetica,sans-serif; color:Black; background:#f7f7e7; padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;align:center;text-align:center} th {font:bold 10pt Arial,Helvetica,sans-serif; color:#336699; background:#cccc99; padding:0px 0px 0px 0px;} h1 {font:16pt Arial,Helvetica,Geneva,sans-serif; color:#336699; background-color:White; border-bottom:1px solid #cccc99; margin-top:0pt; margin-bottom:0pt; padding:0px 0px 0px 0px;-
+} h2 {font:bold 10pt Arial,Helvetica,Geneva,sans-serif; color:#336699; background-color:White; margin-top:4pt; margin-bottom:0pt;} a {font:9pt Arial,Helvetica,sans-serif; color:#663300; background:#ffffff; margin-top:0pt; margin-bottom:0pt; vertical-align:top;}</style><title>SQL*Plus Report</title>" BODY "" TABLE "border='1' width='90%' align='center' summary='Script output'" ENTMAP ON PREFORMAT OFF
+
+spool /home/oracle/scripts/logs/DBSPACE.html
+
+select (SELECT SYS_CONTEXT ('USERENV', 'DB_NAME')  FROM DUAL) DBNAME,t.TOTAL "TOTAL_SIZE(GB)",round(t.TOTAL - nvl(f.FREE,0)) "USED_SPACE(GB)",nvl(f.FREE,0) "FREE_SPACE(GB)"
+FROM
+(select trunc(sum(bytes)/1024/1024/1024) as "TOTAL" from dba_data_files) t,
+(select trunc(sum(bytes)/1024/1024/1024) as "FREE" from dba_free_space) f;
+
+spool off
+set markup HTML off
+
+==========================
+
+TBS.html
+
+select  t.tablespace_name "TABLESPACE", t.TOTAL "TOTAL_SIZE(MB)",
+nvl(f.FREE,0) "FREE_SPACE(MB)",round(nvl(f.FREE,0)*100/t.TOTAL) "% FREE"
+FROM
+(select tablespace_name,trunc(sum(bytes)/1024/1024) as "TOTAL" from dba_data_files group by tablespace_name) t,
+(select tablespace_name,trunc(sum(bytes)/1024/1024) as "FREE" from dba_free_space group by tablespace_name) f
+where t.tablespace_name=f.tablespace_name(+)  and t.tablespace_name='PR_BIPLATFORM';
+
+spool off
+set markup HTML off
+
+
+==============
+
+
+cat SEGGROWTH.sql
+column "Percent of Total Disk Usage" justify right format 999.99
+column "Space Used (MB)" justify right format 9,999,999.99
+column "Total Object Size (MB)" justify right format 9,999,999.99
+set linesize 150
+set pages 80
+set feedback off
+col segment_name for a60
+
+set  markup HTML ON SPOOL ON HEAD "<style type='text/css'> body {font:10pt Arial,Helvetica,sans-serif; color:black; background:White;} p {font:10pt Arial,Helvetica,sans-serif; color:black; background:White;} table,tr,td {font:10pt Arial,Helvetica,sans-serif; color:Black; background:#f7f7e7; padding:0px 0px 0px 0px; margin:0px 0px 0px 0px;align:center;text-align:center} th {font:bold 10pt Arial,Helvetica,sans-serif; color:#336699; background:#cccc99; padding:0px 0px 0px 0px;} h1 {font:16pt Arial,Helvetica,Geneva,sans-serif; color:#336699; background-color:White; border-bottom:1px solid #cccc99; margin-top:0pt; margin-bottom:0pt; padding:0px 0px 0px 0px;-
+} h2 {font:bold 10pt Arial,Helvetica,Geneva,sans-serif; color:#336699; background-color:White; margin-top:4pt; margin-bottom:0pt;} a {font:9pt Arial,Helvetica,sans-serif; color:#663300; background:#ffffff; margin-top:0pt; margin-bottom:0pt; vertical-align:top;}</style><title>SQL*Plus Report</title>" BODY "" TABLE "border='1' width='90%' align='center' summary='Script output'" ENTMAP ON PREFORMAT OFF
+
+spool /home/oracle/scripts/logs/SEGGROWTH.html
+
+select * from (select to_char(end_interval_time, 'MM/DD/YY') mydate, c.segment_name,sum(space_used_delta)/1024/1024 "Space_Allocated(MB)", avg(c.bytes)/1024/1024 "Total_Size(MB)",
+round(sum(space_used_delta) / sum(c.bytes) * 100, 2) "%_of_Total_Disk_Usage"
+from
+   dba_hist_snapshot sn,
+   dba_hist_seg_stat a,
+   dba_objects b,
+   dba_segments c
+where begin_interval_time > trunc(sysdate) - 3
+and sn.snap_id = a.snap_id
+and b.object_id = a.obj#
+and b.owner = c.owner
+and b.object_name = c.segment_name
+and c.segment_name in ('XMLP_SCHED_DATA','XMLP_SCHED_DELIVERY','XMLP_SCHED_JOB','XMLP_SCHED_OUTPUT')
+group by to_char(end_interval_time, 'MM/DD/YY'),c.segment_name)
+order by to_date(mydate, 'MM/DD/YY'),segment_name;
+
+spool off
+set markup HTML off
+
+==================== END ==================
